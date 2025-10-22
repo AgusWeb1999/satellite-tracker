@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/satellite-tracker/static/css/main.717b0543.css",
-    "main.js": "/satellite-tracker/static/js/main.2c14e6a7.js",
+    "main.js": "/satellite-tracker/static/js/main.abebab76.js",
     "index.html": "/satellite-tracker/index.html",
     "main.717b0543.css.map": "/satellite-tracker/static/css/main.717b0543.css.map",
-    "main.2c14e6a7.js.map": "/satellite-tracker/static/js/main.2c14e6a7.js.map"
+    "main.abebab76.js.map": "/satellite-tracker/static/js/main.abebab76.js.map"
   },
   "entrypoints": [
     "static/css/main.717b0543.css",
-    "static/js/main.2c14e6a7.js"
+    "static/js/main.abebab76.js"
   ]
 }
