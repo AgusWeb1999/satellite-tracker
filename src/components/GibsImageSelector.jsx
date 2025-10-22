@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { buildGibsUrl } from "../api/nasaGibs";
+import "../styles/formElements.css"; // ¡IMPORTANTE! Para estilos oscuros y modernos
 
 // Lista de ubicaciones predefinidas (países o regiones)
 const LOCATIONS = [
@@ -12,7 +13,6 @@ const LOCATIONS = [
   { name: "Europa Occidental", bbox: "-10.0,35.0,15.0,55.0" },
   { name: "África Central", bbox: "15,-5,25,5" },
   { name: "Australia", bbox: "140,-37,150,-27" },
-  // Puedes agregar más países, continentes o regiones aquí
 ];
 
 const LAYERS = [
@@ -79,7 +79,20 @@ export default function GibsImageSelector() {
     : null;
 
   return (
-    <div>
+    <form
+      className="gibs-form"
+      style={{
+        background: "rgba(19,25,40,0.94)",
+        borderRadius: "18px",
+        padding: "24px 18px",
+        maxWidth: 500,
+        margin: "32px auto",
+        boxShadow: "0 0 24px #2ffcff22, 0 1px 40px #000a",
+        border: "1.5px solid #222942",
+        color: "#fff"
+      }}
+      onSubmit={e => { e.preventDefault(); handleBuscar(); }}
+    >
       <label>
         Ubicación:&nbsp;
         <select value={selectedLocation} onChange={handleLocationChange}>
@@ -90,57 +103,57 @@ export default function GibsImageSelector() {
           ))}
         </select>
       </label>
-      <br />
       <label>
         Producto:&nbsp;
         <select value={layer} onChange={e => setLayer(e.target.value)}>
           {LAYERS.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
         </select>
       </label>
-      <br />
       <label>
         Fecha:&nbsp;
         <input type="date" value={date} onChange={e => setDate(e.target.value)} />
       </label>
-      <br />
       <label>
         BBOX:&nbsp;
         <input type="text" value={bbox} onChange={e => setBbox(e.target.value)} style={{width: "280px"}} />
-        <small> (long_min,lat_min,long_max,lat_max)</small>
+        <span className="form-helper"> (long_min,lat_min,long_max,lat_max)</span>
       </label>
-      <br />
       <label>
         Tamaño:&nbsp;
         <input type="number" min={256} max={2048} value={width} onChange={e => setWidth(Number(e.target.value))} style={{width: "70px"}} /> x
         <input type="number" min={256} max={2048} value={height} onChange={e => setHeight(Number(e.target.value))} style={{width: "70px", marginLeft: "3px"}} /> px
-        <small> (a mayor tamaño, más detalle visual)</small>
+        <span className="form-helper"> (a mayor tamaño, más detalle visual)</span>
       </label>
-      <br />
-      <button style={{ margin: "12px 0" }} onClick={handleBuscar}>
+      <button type="submit" style={{ margin: "18px 0 0 0" }}>
         Buscar
       </button>
       {ndviWarning && (
-        <div style={{ color: "#b8860b", marginTop: 8, fontSize: "0.95em" }}>
+        <div className="form-helper" style={{ color: "#ffe066", marginTop: 8 }}>
           {ndviWarning}
         </div>
       )}
-      <div style={{margin:"20px 0"}}>
+      <div style={{margin:"30px 0 10px 0"}}>
         {imgError ? (
-          <div style={{color: "red"}}>No se pudo cargar la imagen. Prueba otra fecha, producto o región.</div>
+          <div className="form-error">No se pudo cargar la imagen. Prueba otra fecha, producto o región.</div>
         ) : (
           <img
             src={url}
             alt="NASA GIBS"
-            style={{maxWidth: "100%", border: "1px solid #aaa"}}
+            style={{
+              maxWidth: "100%",
+              border: "1px solid #2ffcff44",
+              borderRadius: "12px",
+              boxShadow: "0 0 16px #2ffcff22"
+            }}
             onError={() => setImgError(true)}
             onLoad={() => setImgError(false)}
           />
         )}
       </div>
-      <div>
+      <div className="form-helper" style={{marginTop: 10}}>
         <b>URL:</b>
         <div style={{fontSize: "0.8em", wordBreak: "break-all"}}>{url}</div>
       </div>
-    </div>
+    </form>
   );
 }

@@ -4,10 +4,11 @@
   "private": true,
   "homepage": "https://agusweb1999.github.io/satellite-tracker",
   "dependencies": {
+    "axios": "^1.6.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
-    "axios": "^1.6.7",
     "three": "^0.153.0",
     "webxr-polyfill": "^2.0.1"
   },
@@ -15,6 +16,18 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build" 
+    "deploy": "gh-pages -d build"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
