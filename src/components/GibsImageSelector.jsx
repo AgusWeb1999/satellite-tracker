@@ -16,7 +16,8 @@ const LOCATIONS = [
 ];
 
 const LAYERS = [
-  { id: "MODIS_Terra_CorrectedReflectance_TrueColor", label: "Color Real" },
+  { id: "MODIS_Terra_CorrectedReflectance_TrueColor", label: "Color Real (MODIS)" },
+  { id: "VIIRS_SNPP_CorrectedReflectance_TrueColor", label: "Color Real (VIIRS)" },
   { id: "MODIS_Terra_Thermal_Anomalies_All", label: "Incendios" },
   { id: "MODIS_Terra_Cloud_Mask_Day", label: "Nubes (día)" },
   { id: "MODIS_Terra_Aerosol", label: "Polvo/Aerosol" },
@@ -34,22 +35,30 @@ export default function GibsImageSelector() {
   const [bbox, setBbox] = useState("-56.25,-34.95,-56.15,-34.85");
   const [imgError, setImgError] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0].name);
+  const [width, setWidth] = useState(1024);
+  const [height, setHeight] = useState(1024);
 
   // Estados para "Buscar"
   const [currentLayer, setCurrentLayer] = useState(layer);
   const [currentDate, setCurrentDate] = useState(date);
   const [currentBbox, setCurrentBbox] = useState(bbox);
+  const [currentWidth, setCurrentWidth] = useState(width);
+  const [currentHeight, setCurrentHeight] = useState(height);
 
   const url = buildGibsUrl({
     bbox: currentBbox,
     date: currentDate,
     layer: currentLayer,
+    width: currentWidth,
+    height: currentHeight,
   });
 
   const handleBuscar = () => {
     setCurrentLayer(layer);
     setCurrentDate(date);
     setCurrentBbox(bbox);
+    setCurrentWidth(width);
+    setCurrentHeight(height);
     setImgError(false);
   };
 
@@ -96,8 +105,15 @@ export default function GibsImageSelector() {
       <br />
       <label>
         BBOX:&nbsp;
-        <input type="text" value={bbox} onChange={e => setBbox(e.target.value)} />
+        <input type="text" value={bbox} onChange={e => setBbox(e.target.value)} style={{width: "280px"}} />
         <small> (long_min,lat_min,long_max,lat_max)</small>
+      </label>
+      <br />
+      <label>
+        Tamaño:&nbsp;
+        <input type="number" min={256} max={2048} value={width} onChange={e => setWidth(Number(e.target.value))} style={{width: "70px"}} /> x
+        <input type="number" min={256} max={2048} value={height} onChange={e => setHeight(Number(e.target.value))} style={{width: "70px", marginLeft: "3px"}} /> px
+        <small> (a mayor tamaño, más detalle visual)</small>
       </label>
       <br />
       <button style={{ margin: "12px 0" }} onClick={handleBuscar}>
