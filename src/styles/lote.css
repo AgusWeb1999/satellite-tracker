@@ -1,0 +1,646 @@
+/* ─── LoteMonitor · Styles ──────────────────────────────────────────────────── */
+
+.lote-wrapper {
+  font-family: 'Syne', 'DM Sans', system-ui, sans-serif;
+  background: #080c14;
+  color: #e2e8f0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.lote-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(10,15,25,0.97);
+  border-bottom: 1px solid #1e2d40;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  backdrop-filter: blur(12px);
+}
+
+.lote-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lote-header-icon {
+  font-size: 26px;
+  filter: drop-shadow(0 0 8px #22c55e88);
+}
+
+.lote-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #a3e635, #22c55e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.03em;
+}
+
+.lote-subtitle {
+  margin: 0;
+  font-size: 11px;
+  color: #4b6080;
+  margin-top: 1px;
+}
+
+.lote-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lote-name-input {
+  background: #0f1929;
+  border: 1px solid #1e2d40;
+  border-radius: 8px;
+  color: #e2e8f0;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  width: 150px;
+  transition: border-color 0.15s;
+}
+
+.lote-name-input:focus {
+  border-color: #22c55e44;
+}
+
+.lote-date {
+  background: #0f1929;
+  border: 1px solid #1e2d40;
+  border-radius: 8px;
+  color: #cbd5e1;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.lote-comp-btns {
+  display: flex;
+  gap: 2px;
+  background: #0f1929;
+  border: 1px solid #1e2d40;
+  border-radius: 7px;
+  padding: 3px;
+}
+
+.lote-comp-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #4b6080;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.lote-comp-btn.active {
+  background: #22c55e22;
+  color: #22c55e;
+}
+
+/* Steps */
+.lote-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+  background: #0a0f1a;
+  border-bottom: 1px solid #1e2d40;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.lote-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  height: 100%;
+  font-size: 12px;
+  color: #2d3f55;
+  border-right: 1px solid #1e2d40;
+  transition: all 0.15s;
+}
+
+.lote-step.active {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.lote-step.done {
+  color: #4b6080;
+}
+
+.lote-step-n {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: currentColor;
+  color: #080c14;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lote-step.done .lote-step-n {
+  background: #2d3f55;
+}
+
+.lote-step-lbl {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Content layout */
+.lote-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Map column */
+.lote-map-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1e2d40;
+  min-width: 0;
+}
+
+.lote-draw-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.lote-draw-map {
+  flex: 1;
+  min-height: 420px;
+}
+
+.lote-draw-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #0a0f1a;
+  border-top: 1px solid #1e2d40;
+  flex-shrink: 0;
+}
+
+.lote-draw-btn {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #1e2d40;
+  border-radius: 8px;
+  background: #0f1929;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lote-draw-btn.active {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+  animation: borderPulse 1.5s infinite;
+}
+
+@keyframes borderPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+}
+
+.lote-draw-pts {
+  font-size: 12px;
+  color: #4b6080;
+}
+
+.lote-draw-clear {
+  font-size: 12px;
+  color: #ef4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.lote-draw-hint {
+  padding: 6px 16px;
+  font-size: 11px;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
+  border-top: 1px solid rgba(34, 197, 94, 0.1);
+  flex-shrink: 0;
+}
+
+.lote-poly-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: #0a0f1a;
+  border-top: 1px solid #1e2d40;
+  font-size: 12px;
+  color: #4b6080;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.lote-empty-hint {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #2d3f55;
+  background: #0a0f1a;
+  border-top: 1px solid #1e2d40;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lote-analyze-btn {
+  margin-left: auto;
+  padding: 7px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #22c55e;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lote-analyze-btn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.lote-analyze-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Report column */
+.lote-report-col {
+  width: 360px;
+  flex-shrink: 0;
+  background: #0a0f1a;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.lote-report-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.lote-report-empty-icon {
+  font-size: 48px;
+  opacity: 0.3;
+}
+
+.lote-spin {
+  animation: spin 2s linear infinite;
+  opacity: 0.6 !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.lote-report-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d3f55;
+}
+
+.lote-report-empty-sub {
+  font-size: 12px;
+  color: #1e2d40;
+  line-height: 1.6;
+}
+
+/* Report content */
+.lote-report {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Status badge */
+.lote-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lote-status-ok   { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+.lote-status-warn { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); color: #fde047; }
+.lote-status-crit { background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); color: #fca5a5; }
+
+.lote-status-icon {
+  font-size: 16px;
+}
+
+/* NDVI main display */
+.lote-ndvi-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0f1929;
+  border: 1px solid #1e2d40;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.lote-ndvi-block {
+  flex: 1;
+  text-align: center;
+}
+
+.lote-ndvi-label {
+  font-size: 10px;
+  color: #4b6080;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.lote-ndvi-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.lote-ndvi-prev {
+  font-size: 26px;
+  color: #2d3f55;
+}
+
+.lote-ndvi-label-sub {
+  font-size: 11px;
+  color: #4b6080;
+  margin-top: 3px;
+}
+
+.lote-ndvi-vs {
+  font-size: 11px;
+  color: #2d3f55;
+}
+
+.lote-delta {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 64px;
+}
+
+.lote-delta.up   { color: #22c55e; background: rgba(34,197,94,0.1); }
+.lote-delta.down { color: #ef4444; background: rgba(220,38,38,0.1); }
+
+/* Section title */
+.lote-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2d3f55;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #1e2d40;
+}
+
+/* Zones */
+.lote-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lote-zone-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  row-gap: 3px;
+}
+
+.lote-zone-info {
+  display: flex;
+  justify-content: space-between;
+  grid-column: 1 / -1;
+}
+
+.lote-zone-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.lote-zone-pct {
+  font-size: 11px;
+  color: #4b6080;
+}
+
+.lote-zone-bar-bg {
+  grid-column: 1;
+  height: 5px;
+  background: #1e2d40;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.lote-zone-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+.lote-zone-val {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.lote-zone-lbl {
+  font-size: 11px;
+  color: #4b6080;
+  text-align: right;
+}
+
+/* Clima */
+.lote-clima-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.lote-clima-card {
+  background: #0f1929;
+  border: 1px solid #1e2d40;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.lote-clima-card.warn {
+  border-color: rgba(234,179,8,0.3);
+  background: rgba(234,179,8,0.05);
+}
+
+.lote-clima-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.lote-clima-val span {
+  font-size: 12px;
+  font-weight: 400;
+  color: #4b6080;
+  margin-left: 2px;
+}
+
+.lote-clima-lbl {
+  font-size: 10px;
+  color: #4b6080;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Precipitación chart */
+.lote-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 56px;
+  padding: 0 2px;
+}
+
+.lote-chart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  height: 100%;
+}
+
+.lote-chart-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.lote-chart-bar {
+  width: 100%;
+  background: #38bdf8;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+.lote-chart-lbl {
+  font-size: 8px;
+  color: #2d3f55;
+  white-space: nowrap;
+}
+
+/* Recomendaciones */
+.lote-recs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lote-rec {
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.lote-rec-ok   { background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.2); color: #86efac; }
+.lote-rec-warn { background: rgba(234,179,8,0.07); border: 1px solid rgba(234,179,8,0.2); color: #fde047; }
+.lote-rec-crit { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); color: #fca5a5; }
+
+.lote-rec-icon {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+/* PDF button */
+.lote-pdf-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid #22c55e;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+}
+
+.lote-pdf-btn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.2);
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.15);
+}
+
+.lote-pdf-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lote-content { flex-direction: column; }
+  .lote-report-col { width: 100%; border-top: 1px solid #1e2d40; }
+  .lote-draw-map { min-height: 300px; }
+  .lote-header { padding: 12px 16px; }
+}

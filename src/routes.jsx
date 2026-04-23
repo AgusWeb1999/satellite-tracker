@@ -5,6 +5,7 @@ import LibraryPage from "./pages/LibraryPage";
 import GIBSPage from "./pages/GIBSPage";
 import UruguayPage from "./pages/UruguayPage";
 import AgroPage from "./pages/AgroPage";
+import LotePage from "./pages/LotePage";
 
 export default function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ export default function AppRoutes() {
       <Route path="/library" element={<LibraryPage />} />
       <Route path="/uruguay" element={<UruguayPage />} />
       <Route path="/agro" element={<AgroPage />} />
+      <Route path="/lote" element={<LotePage />} />
     </Routes>
   );
 }
