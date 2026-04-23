@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import "../styles/lote.css";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -7,21 +7,121 @@ const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 
 // NDVI simulado por zona del polígono (en producción vendría de Sentinel-2)
 // Con Sentinel Hub real se haría via Process API con el polígono como WKT
+// Genera un número pseudoaleatorio determinista (sin Math.random)
+// para que el mismo polígono + fecha siempre dé el mismo resultado
+function pseudoRand(seed, offset) {
+  const x = Math.sin(seed * 127.1 + offset * 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
 function simulateNDVI(polygon, date) {
-  // Genera valores NDVI realistas basados en la semilla del polígono y fecha
   const seed = polygon.reduce((a, p) => a + p.lat + p.lng, 0);
   const month = parseInt(date.split("-")[1]);
-  // Estacionalidad: verano (dic-feb) mejor NDVI en Uruguay
+  const day   = parseInt(date.split("-")[2]);
+  // Estacionalidad Uruguay: mejor dic-feb, peor jun-ago
   const seasonal = month >= 11 || month <= 2 ? 0.12 : month >= 6 && month <= 8 ? -0.08 : 0;
   const base = 0.45 + (seed % 0.3) + seasonal;
+  // Pequeña variación por día para que distintas fechas difieran levemente
+  const dayNoise = (pseudoRand(seed, day) - 0.5) * 0.06;
   const zones = [
-    { label: "Zona Norte", ndvi: Math.min(0.92, base + 0.18 + Math.random() * 0.05), pct: 28 },
-    { label: "Zona Centro", ndvi: Math.min(0.92, base + 0.06 + Math.random() * 0.05), pct: 35 },
-    { label: "Zona Sur",    ndvi: Math.min(0.92, base - 0.04 + Math.random() * 0.05), pct: 22 },
-    { label: "Zona Crítica",ndvi: Math.max(0.08, base - 0.22 + Math.random() * 0.04), pct: 15 },
+    { label: "Zona Norte",  ndvi: Math.min(0.92, base + 0.18 + pseudoRand(seed, 1) * 0.05 + dayNoise), pct: 28 },
+    { label: "Zona Centro", ndvi: Math.min(0.92, base + 0.06 + pseudoRand(seed, 2) * 0.05 + dayNoise), pct: 35 },
+    { label: "Zona Sur",    ndvi: Math.min(0.92, base - 0.04 + pseudoRand(seed, 3) * 0.05 + dayNoise), pct: 22 },
+    { label: "Zona Crítica",ndvi: Math.max(0.08, base - 0.22 + pseudoRand(seed, 4) * 0.04 + dayNoise), pct: 15 },
   ];
   const avg = zones.reduce((a, z) => a + z.ndvi * z.pct / 100, 0);
   return { zones, avg: parseFloat(avg.toFixed(3)) };
+}
+
+// ─── Genera la serie temporal de NDVI para los últimos N períodos ─────────────
+// Devuelve array de { date, avg, zones } ordenado del más antiguo al más nuevo
+function buildNDVIHistory(polygon, date, periods) {
+  // periods: array de días hacia atrás, ej [56, 40, 24, 8, 0]
+  return periods.map(daysBack => {
+    const d = new Date(date);
+    d.setDate(d.getDate() - daysBack);
+    const dateStr = d.toISOString().split("T")[0];
+    const result = simulateNDVI(polygon, dateStr);
+    return { date: dateStr, daysBack, ...result };
+  });
+}
+
+// ─── Interpreta el cambio de NDVI en lenguaje simple ─────────────────────────
+function interpretarCambio(deltaPct, ndviActual, zonasEmpeoradas, clima) {
+  const msgs = [];
+
+  // Mensaje principal sobre tendencia global
+  if (deltaPct <= -15) {
+    msgs.push({
+      nivel: "crit",
+      titulo: "Caída significativa en el vigor del cultivo",
+      texto: `El lote mostró una disminución del ${Math.abs(deltaPct).toFixed(1)}% en los últimos 16 días. Es probable que haya estrés activo. Se recomienda visita de campo para identificar la causa.`,
+    });
+  } else if (deltaPct <= -10) {
+    msgs.push({
+      nivel: "crit",
+      titulo: "Disminución notable del NDVI",
+      texto: `Se detectó una caída del ${Math.abs(deltaPct).toFixed(1)}% respecto al período anterior. Podría indicar inicio de estrés hídrico, déficit nutricional o presencia de plagas. Monitorear de cerca.`,
+    });
+  } else if (deltaPct <= -5) {
+    msgs.push({
+      nivel: "warn",
+      titulo: "Leve tendencia negativa",
+      texto: `El NDVI bajó un ${Math.abs(deltaPct).toFixed(1)}%. Puede ser variación estacional o inicio de estrés. Se sugiere comparar con el historial de años anteriores para este período.`,
+    });
+  } else if (deltaPct >= 8) {
+    msgs.push({
+      nivel: "ok",
+      titulo: "Mejora en el desarrollo del cultivo",
+      texto: `El vigor del lote aumentó un ${deltaPct.toFixed(1)}% respecto al período anterior. El cultivo está en fase de crecimiento activo.`,
+    });
+  } else {
+    msgs.push({
+      nivel: "ok",
+      titulo: "Comportamiento estable",
+      texto: `El NDVI se mantuvo estable (variación de ${deltaPct > 0 ? "+" : ""}${deltaPct.toFixed(1)}%). No se detectan cambios significativos en el período analizado.`,
+    });
+  }
+
+  // Zonas que empeoraron
+  if (zonasEmpeoradas.length > 0) {
+    const nombres = zonasEmpeoradas.map(z => z.label).join(", ");
+    const maxCaida = Math.max(...zonasEmpeoradas.map(z => Math.abs(z.deltaPct)));
+    msgs.push({
+      nivel: maxCaida > 12 ? "crit" : "warn",
+      titulo: "Comportamiento irregular dentro del lote",
+      texto: `${nombres} ${zonasEmpeoradas.length === 1 ? "mostró" : "mostraron"} una caída superior al umbral (máx. ${maxCaida.toFixed(1)}%). Estas zonas requieren atención prioritaria — pueden estar experimentando estrés localizado.`,
+    });
+  }
+
+  // Cruzar con clima
+  if (clima) {
+    if (clima.waterBalance < -30 && deltaPct < -5) {
+      msgs.push({
+        nivel: "warn",
+        titulo: "Posible estrés hídrico",
+        texto: `El balance hídrico negativo (${clima.waterBalance} mm) combinado con la caída de NDVI sugiere déficit de agua. Considerar riego si el cultivo lo requiere.`,
+      });
+    }
+    if (clima.precip14 > 100 && deltaPct < 0) {
+      msgs.push({
+        nivel: "warn",
+        titulo: "Alta humedad — riesgo de enfermedades fúngicas",
+        texto: `La precipitación elevada (${clima.precip14} mm / 14 días) puede favorecer enfermedades foliares. El descenso de NDVI podría estar asociado a esto.`,
+      });
+    }
+  }
+
+  // NDVI absoluto muy bajo
+  if (ndviActual < 0.25) {
+    msgs.push({
+      nivel: "crit",
+      titulo: "Zona con bajo desarrollo vegetativo",
+      texto: `El NDVI promedio (${ndviActual.toFixed(3)}) está en un rango crítico. Puede indicar suelo desnudo, cultivo fallido o daño severo. Verificar en campo.`,
+    });
+  }
+
+  return msgs;
 }
 
 function ndviColor(v) {
@@ -96,6 +196,33 @@ function useClima(center) {
   return clima;
 }
 
+// ─── Hook: evolución temporal del NDVI ───────────────────────────────────────
+// Calcula serie de 5 snapshots: -56d, -40d, -24d, -8d, actual
+// Devuelve { historia, zonasEmpeoradas, tendencia }
+function useEvolucion(polygon, date, ndviActual, ndviAnterior) {
+  return useMemo(() => {
+    if (!ndviActual || !ndviAnterior || polygon.length < 3) return null;
+    const PERIODS = [56, 40, 24, 8, 0];
+    const historia = buildNDVIHistory(polygon, date, PERIODS);
+
+    // Zonas que empeoraron (comparando actual vs anterior 16d)
+    const zonasEmpeoradas = ndviActual.zones.map((z, i) => {
+      const zAnterior = ndviAnterior.zones[i];
+      const delta = z.ndvi - zAnterior.ndvi;
+      const deltaPct = (delta / zAnterior.ndvi) * 100;
+      return { ...z, ndviAnterior: zAnterior.ndvi, delta, deltaPct };
+    }).filter(z => z.deltaPct < -7);
+
+    // Tendencia basada en los últimos 3 puntos de historia
+    const ultimos = historia.slice(-3).map(h => h.avg);
+    const tendencia = ultimos[2] > ultimos[0] + 0.02 ? "mejorando"
+                    : ultimos[2] < ultimos[0] - 0.02 ? "deteriorando"
+                    : "estable";
+
+    return { historia, zonasEmpeoradas, tendencia };
+  }, [polygon, date, ndviActual, ndviAnterior]);
+}
+
 // ─── Componente: Mini gráfico de barras ──────────────────────────────────────
 function PrecipChart({ days, values }) {
   if (!days || !values) return null;
@@ -112,6 +239,137 @@ function PrecipChart({ days, values }) {
           <div className="lote-chart-lbl">{last7[i]?.slice(5)}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Componente: Sparkline de evolución NDVI ─────────────────────────────────
+function NDVISparkline({ historia }) {
+  if (!historia || historia.length < 2) return null;
+  const vals = historia.map(h => h.avg);
+  const minV = Math.min(...vals) - 0.02;
+  const maxV = Math.max(...vals) + 0.02;
+  const range = maxV - minV || 0.1;
+  const W = 200, H = 48, pad = 6;
+
+  const pts = vals.map((v, i) => {
+    const x = pad + (i / (vals.length - 1)) * (W - 2 * pad);
+    const y = H - pad - ((v - minV) / range) * (H - 2 * pad);
+    return `${x},${y}`;
+  }).join(" ");
+
+  const lastColor = ndviColor(vals[vals.length - 1]);
+
+  return (
+    <div className="lote-sparkline">
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
+        <defs>
+          <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lastColor} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={lastColor} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {/* Area fill */}
+        <polygon
+          points={`${pad},${H} ${pts} ${W - pad},${H}`}
+          fill="url(#sparkGrad)"
+        />
+        {/* Line */}
+        <polyline points={pts} fill="none" stroke={lastColor} strokeWidth="1.5" strokeLinejoin="round" />
+        {/* Dots */}
+        {vals.map((v, i) => {
+          const x = pad + (i / (vals.length - 1)) * (W - 2 * pad);
+          const y = H - pad - ((v - minV) / range) * (H - 2 * pad);
+          return (
+            <circle key={i} cx={x} cy={y} r={i === vals.length - 1 ? 4 : 2.5}
+              fill={ndviColor(v)} stroke="#080c14" strokeWidth="1.5" />
+          );
+        })}
+      </svg>
+      <div className="lote-sparkline-labels">
+        {historia.map((h, i) => (
+          <div key={i} className="lote-sparkline-lbl"
+            style={{ color: i === historia.length - 1 ? ndviColor(h.avg) : undefined }}>
+            {h.daysBack === 0 ? "hoy" : `-${h.daysBack}d`}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Componente: Bloque de evolución ─────────────────────────────────────────
+function EvolucionBlock({ evolucion, deltaPct, clima }) {
+  if (!evolucion) return null;
+  const { historia, zonasEmpeoradas, tendencia } = evolucion;
+  const ndviActualAvg = historia[historia.length - 1]?.avg;
+  const interpretaciones = interpretarCambio(deltaPct, ndviActualAvg, zonasEmpeoradas, clima);
+
+  const tendenciaIcon = tendencia === "mejorando" ? "↑" : tendencia === "deteriorando" ? "↓" : "→";
+  const tendenciaColor = tendencia === "mejorando" ? "#22c55e" : tendencia === "deteriorando" ? "#ef4444" : "#94a3b8";
+
+  return (
+    <div className="lote-evolucion">
+      {/* Header con tendencia */}
+      <div className="lote-evolucion-header">
+        <span className="lote-evolucion-title">EVOLUCIÓN DEL CULTIVO</span>
+        <span className="lote-evolucion-tendencia" style={{ color: tendenciaColor }}>
+          {tendenciaIcon} {tendencia}
+        </span>
+      </div>
+
+      {/* Sparkline */}
+      <NDVISparkline historia={historia} />
+
+      {/* Tabla de snapshots */}
+      <div className="lote-snap-table">
+        {historia.map((h, i) => {
+          const prev = historia[i - 1];
+          const d = prev ? h.avg - prev.avg : null;
+          return (
+            <div key={i} className={`lote-snap-row ${i === historia.length - 1 ? "current" : ""}`}>
+              <span className="lote-snap-date">{h.daysBack === 0 ? "Hoy" : `-${h.daysBack}d`}</span>
+              <span className="lote-snap-val" style={{ color: ndviColor(h.avg) }}>{h.avg.toFixed(3)}</span>
+              <span className="lote-snap-label">{ndviLabel(h.avg)}</span>
+              {d !== null && (
+                <span className={`lote-snap-delta ${d >= 0 ? "up" : "down"}`}>
+                  {d >= 0 ? "+" : ""}{(d * 100).toFixed(1)}%
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Zonas que empeoraron */}
+      {zonasEmpeoradas.length > 0 && (
+        <div className="lote-zonas-warn">
+          <div className="lote-zonas-warn-title">⚠ Zonas con descenso significativo</div>
+          {zonasEmpeoradas.map(z => (
+            <div key={z.label} className="lote-zona-warn-row">
+              <span className="lote-zona-warn-name">{z.label}</span>
+              <div className="lote-zona-warn-bar-bg">
+                <div className="lote-zona-warn-bar" style={{
+                  width: `${z.ndvi * 100}%`, background: ndviColor(z.ndvi)
+                }} />
+              </div>
+              <span style={{ color: "#ef4444", fontSize: 11, fontWeight: 700 }}>
+                {z.deltaPct.toFixed(1)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Interpretaciones en lenguaje simple */}
+      <div className="lote-interpretaciones">
+        {interpretaciones.map((m, i) => (
+          <div key={i} className={`lote-interp lote-interp-${m.nivel}`}>
+            <div className="lote-interp-titulo">{m.titulo}</div>
+            <div className="lote-interp-texto">{m.texto}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -437,6 +695,70 @@ async function generatePDF(reporte) {
     y += 13;
   });
 
+  // ── Sección: Evolución temporal (si hay)
+  if (reporte.evolucion && reporte.evolucion.historia) {
+    if (y > 220) { doc.addPage(); y = 20; }
+
+    doc.setTextColor(34, 197, 94);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("EVOLUCIÓN DEL CULTIVO", M, y);
+    y += 2;
+    doc.line(M, y, W - M, y);
+    y += 7;
+
+    const historia = reporte.evolucion.historia;
+    const deltaPct = reporte.deltaPct || 0;
+
+    // Mensaje de tendencia
+    const tendencia = reporte.evolucion.tendencia;
+    const tendenciaColor = tendencia === "mejorando" ? [34,197,94] : tendencia === "deteriorando" ? [220,38,38] : [148,163,184];
+    doc.setFillColor(...tendenciaColor.map(c => Math.round(c * 0.15 + 240)));
+    doc.roundedRect(M, y, W - 2*M, 10, 2, 2, "F");
+    doc.setTextColor(...tendenciaColor);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    const tendIcon = tendencia === "mejorando" ? "↑" : tendencia === "deteriorando" ? "↓" : "→";
+    doc.text(`Tendencia: ${tendIcon} ${tendencia.charAt(0).toUpperCase() + tendencia.slice(1)}  ·  Variación 16d: ${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(1)}%`, M + 6, y + 6.5);
+    y += 15;
+
+    // Tabla de snapshots
+    doc.setFontSize(8.5);
+    historia.forEach((h, i) => {
+      const col = ndviColor(h.avg);
+      const rgb = hexToRgb(col);
+      doc.setFont("helvetica", i === historia.length-1 ? "bold" : "normal");
+      doc.setTextColor(60, 60, 60);
+      doc.text(h.daysBack === 0 ? "Hoy" : `-${h.daysBack} días`, M, y);
+      doc.setTextColor(...rgb);
+      doc.text(h.avg.toFixed(3), M + 35, y);
+      doc.setTextColor(100, 100, 100);
+      doc.setFont("helvetica", "normal");
+      doc.text(ndviLabel(h.avg), M + 55, y);
+      y += 6;
+    });
+
+    // Interpretaciones
+    y += 4;
+    const interps = interpretarCambio(deltaPct, historia[historia.length-1]?.avg, reporte.evolucion.zonasEmpeoradas || [], reporte.clima);
+    interps.forEach(m => {
+      if (y > 260) return;
+      const bgColor = m.nivel === "crit" ? [254,242,242] : m.nivel === "warn" ? [255,251,235] : [240,253,244];
+      const txtColor = m.nivel === "crit" ? [153,27,27] : m.nivel === "warn" ? [120,80,0] : [20,83,45];
+      doc.setFillColor(...bgColor);
+      const textLines = doc.splitTextToSize(`${m.titulo}: ${m.texto}`, W - 2*M - 8);
+      const blockH = textLines.length * 5 + 6;
+      doc.roundedRect(M, y, W - 2*M, blockH, 2, 2, "F");
+      doc.setTextColor(...txtColor);
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.text(textLines, M + 4, y + 5);
+      y += blockH + 4;
+    });
+
+    y += 4;
+  }
+
   // Footer
   y = 285;
   doc.setFillColor(8, 12, 20);
@@ -542,6 +864,8 @@ export default function LoteMonitor() {
         ndviAnterior: ndviAnterior.avg,
         zones: ndviActual.zones,
         clima,
+        evolucion,
+        deltaPct,
       });
     } finally {
       setGenerating(false);
@@ -549,6 +873,7 @@ export default function LoteMonitor() {
   };
 
   const delta = ndviActual && ndviAnterior ? ndviActual.avg - ndviAnterior.avg : null;
+  const deltaPct = delta !== null && ndviAnterior ? (delta / ndviAnterior.avg) * 100 : null;
   const status = ndviActual ? ndviStatus(ndviActual.avg) : null;
   const recs = ndviActual ? getRecomendaciones({
     ndviActual: ndviActual.avg,
@@ -556,6 +881,10 @@ export default function LoteMonitor() {
     zones: ndviActual.zones,
     clima,
   }) : [];
+  // Evolución temporal
+  const evolucion = useEvolucion(polygon, date, ndviActual, ndviAnterior);
+  // Alerta global si caída > 10%
+  const alertaSignificativa = deltaPct !== null && deltaPct < -10;
 
   return (
     <div className="lote-wrapper">
@@ -662,6 +991,20 @@ export default function LoteMonitor() {
 
           {ndviActual && !analyzing && (
             <div className="lote-report">
+              {/* Alerta significativa */}
+              {alertaSignificativa && (
+                <div className="lote-alerta-global">
+                  <span className="lote-alerta-icon">⚠️</span>
+                  <div>
+                    <div className="lote-alerta-titulo">Se detectó una disminución significativa en el cultivo</div>
+                    <div className="lote-alerta-sub">
+                      Caída del {Math.abs(deltaPct).toFixed(1)}% respecto a 16 días atrás.
+                      Se recomienda revisar el lote y evaluar causas posibles.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Status badge */}
               <div className={`lote-status-badge lote-status-${status.cls}`}>
                 <span className="lote-status-icon">{status.icon}</span>
@@ -738,6 +1081,13 @@ export default function LoteMonitor() {
                   <PrecipChart days={clima.fechas} values={clima.precipDays} />
                 </>
               )}
+
+              {/* Evolución del cultivo */}
+              <EvolucionBlock
+                evolucion={evolucion}
+                deltaPct={deltaPct || 0}
+                clima={clima}
+              />
 
               {/* Recomendaciones */}
               <div className="lote-section-title">RECOMENDACIONES</div>
