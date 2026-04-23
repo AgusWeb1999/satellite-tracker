@@ -1,0 +1,476 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   responsive.css — Mobile & tablet overrides
+   Importar en App.jsx o main.jsx:  import './styles/responsive.css';
+   No modifica nada existente — solo agrega reglas @media encima.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Base: viewport meta (agregar en public/index.html si no está) ──────────
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════
+   NAV GLOBAL (space-nav)
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .space-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    padding: 8px 12px;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .space-nav::-webkit-scrollbar { display: none; }
+
+  .space-nav-link {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 99px;
+    border: 1px solid #1e2d40;
+    background: #0f1929;
+  }
+
+  .space-content {
+    overflow-x: hidden;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   HOME
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+  .space-home-header h1 span[style] {
+    font-size: 2rem !important;
+  }
+
+  .space-home-subtitle {
+    font-size: 13px;
+    padding: 0 16px;
+    text-align: center;
+  }
+
+  /* Card grid → 1 columna */
+  .space-home-bg .space-home-overlay > div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+    padding: 0 16px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   AGRO MONITOR
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  /* Layout: columnas → filas */
+  .agro-content {
+    flex-direction: column;
+  }
+
+  /* Panel lateral va abajo del mapa */
+  .agro-panel {
+    width: 100%;
+    max-height: 420px;
+    border-left: none;
+    border-top: 1px solid #1e2d40;
+  }
+
+  /* Mapa mínimo */
+  .agro-map-container {
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Header compacto: logo arriba, controles abajo */
+  .agro-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .agro-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .agro-select {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .agro-date {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  /* Módulos: scroll horizontal */
+  .agro-modules {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .agro-module-btn {
+    min-width: 130px;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .agro-module-label {
+    font-size: 12px;
+  }
+
+  .agro-module-sub {
+    font-size: 9px;
+  }
+
+  /* Map header: apilar elementos */
+  .agro-map-header {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .agro-map-title {
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .agro-cloud-controls {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+
+  /* Mapa más alto en mobile */
+  .agro-map-container {
+    min-height: 300px;
+  }
+
+  /* Leyenda más pequeña */
+  .agro-legend {
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  .agro-legend-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  /* Stats: 3 columnas compactas */
+  .agro-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .agro-stat-num {
+    font-size: 20px;
+  }
+
+  .agro-stat-lbl {
+    font-size: 9px;
+  }
+
+  /* Parcelas */
+  .agro-parcela-card {
+    padding: 10px;
+  }
+
+  .agro-ndvi-val {
+    font-size: 16px;
+  }
+
+  /* Info del modo (desc) */
+  .agro-comp-desc {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  /* Alertas */
+  .agro-alerts {
+    padding: 6px 12px;
+  }
+
+  .agro-alert {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   URUGUAY SATELLITE VIEWER
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  /* Sidebar bajo el mapa */
+  div[style*="width: 260px"],
+  .sidebar {
+    width: 100% !important;
+    max-height: 380px;
+    border-left: none !important;
+    border-top: 1px solid #21262D;
+    overflow-y: auto;
+  }
+
+  /* Contenido: columna */
+  div[style*="display: flex"][style*="flex: 1"][style*="overflow: hidden"] {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Header del viewer */
+  div[style*="background: #161B22"][style*="padding: \"14px 20px\""] {
+    padding: 10px 14px !important;
+  }
+
+  /* Botones de modo: scroll */
+  div[style*="gap: 6px"][style*="padding: \"10px 16px\""] {
+    padding: 8px 10px !important;
+    gap: 5px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOTE MONITOR
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  /* Layout vertical */
+  .lote-content {
+    flex-direction: column;
+  }
+
+  .lote-report-col {
+    width: 100% !important;
+    max-height: none;
+    border-left: none;
+    border-top: 1px solid #1e2d40;
+  }
+
+  .lote-map-col {
+    border-right: none;
+    border-bottom: 1px solid #1e2d40;
+  }
+
+  .lote-draw-map {
+    min-height: 350px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Header compacto */
+  .lote-header {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .lote-header-right {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .lote-name-input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    font-size: 12px;
+  }
+
+  .lote-date {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  /* Steps: compacto */
+  .lote-steps {
+    padding: 0 12px;
+    height: 38px;
+  }
+
+  .lote-step {
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .lote-step-n {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+
+  /* Mapa */
+  .lote-draw-map {
+    min-height: 280px !important;
+  }
+
+  /* Info del polígono: apilar */
+  .lote-poly-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .lote-analyze-btn {
+    width: 100%;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  /* Controles de dibujo */
+  .lote-draw-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .lote-draw-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Reporte */
+  .lote-report {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  /* NDVI main: compacto */
+  .lote-ndvi-main {
+    padding: 12px 10px;
+    gap: 6px;
+  }
+
+  .lote-ndvi-value {
+    font-size: 26px;
+  }
+
+  .lote-ndvi-prev {
+    font-size: 20px;
+  }
+
+  .lote-delta {
+    font-size: 14px;
+    padding: 5px 8px;
+  }
+
+  /* Clima grid: 2 columnas ya está bien */
+  .lote-clima-val {
+    font-size: 17px;
+  }
+
+  /* PDF btn */
+  .lote-pdf-btn {
+    font-size: 13px;
+    padding: 11px;
+  }
+
+  /* Recomendaciones */
+  .lote-rec {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   GIBS PAGE
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+  .gibs-form {
+    margin: 16px auto !important;
+    padding: 18px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .gibs-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .gibs-form select,
+  .gibs-form input[type="date"],
+  .gibs-form input[type="text"] {
+    width: 100% !important;
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+
+  .gibs-form input[type="number"] {
+    width: 70px !important;
+  }
+
+  .gibs-form button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIBRARY PAGE
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+  /* Grid de resultados: 1 columna */
+  div[style*="display:\"flex\""][style*="flexWrap:\"wrap\""],
+  div[style*='display:"flex"'][style*='flexWrap:"wrap"'] {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOUCH UX: agrandar targets táctiles
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) and (pointer: coarse) {
+  /* Botones más fáciles de tocar */
+  button, select, input[type="date"], input[type="text"], input[type="number"] {
+    min-height: 40px;
+  }
+
+  /* Leaflet zoom buttons más grandes */
+  .leaflet-control-zoom a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 18px !important;
+  }
+
+  /* Popups de Leaflet legibles */
+  .leaflet-popup-content {
+    font-size: 13px !important;
+    min-width: 160px;
+  }
+
+  .leaflet-popup-content-wrapper {
+    padding: 4px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   SAFE AREA (iPhone con notch / Dynamic Island)
+   ══════════════════════════════════════════════════════════ */
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .space-nav,
+  .agro-header,
+  .lote-header {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+  }
+
+  .space-home-footer {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
